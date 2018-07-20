@@ -18,10 +18,6 @@ from flask import make_response
 # Flask app should start in global layout
 app = Flask(__name__)
 
-base_url = 'http://api.fixer.io/latest'
-base_currency = 'GBP'
-rate_in = 'HUF'
-
 @app.route('/webhook', methods=['POST'])
 
 
@@ -32,7 +28,7 @@ def webhook():
     print(json.dumps(req, indent=4))
 
     # res = makeWebhookResult(req)
-    res = get_currency_rate(base__currency, rate_in)
+    res = get_currency_rate(req)
 
     res = json.dumps(res, indent=4)
     print(res)
@@ -40,8 +36,17 @@ def webhook():
     r.headers['Content-Type'] = 'application/json'
     return r
 
-def get_currency_rate(currency, rate_in):
+def get_currency_rate():
 #
+  base_url = 'http://api.fixer.io/latest'
+
+  if req.get("result").get("action") != "shipping.cost":
+      return {}
+  result = req.get("result")
+  parameters = result.get("parameters")
+  currency = parameters.get("currency")
+  rate_in = parameters.get("rate_in")
+
   query = base_url + '?base=%s&symbols=%s' % (currency, rate_in)
   try:
     response = requests.get(query)
